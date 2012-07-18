@@ -33,12 +33,15 @@
 *.xz
 *.patch
 *.gcno
+*.img
+*.rej
 
 #
 # Top-level generic files
 #
 tags
 TAGS
+zImage
 vmlinux
 System.map
 Module.markers
@@ -50,6 +53,7 @@ Module.symvers
 # Generated include files
 #
 include/asm
+include/asm-arm/
 include/asm-*/asm-offsets.h
 include/config
 include/linux/autoconf.h
