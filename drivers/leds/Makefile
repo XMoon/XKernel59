@@ -45,7 +45,8 @@ obj-$(CONFIG_LEDS_CPCAP)		+= leds-cpcap-adb.o \
 					   leds-cpcap-mdb.o \
 					   leds-cpcap-rgb.o
 obj-$(CONFIG_LEDS_SHOLEST)		+= leds-ld-cpcap-disp.o \
-					   leds-ld-cpcap-rgb.o
+					   leds-ld-cpcap-rgb.o \
+					   low_batt_led.o
 
 # LED Triggers
 obj-$(CONFIG_LEDS_TRIGGER_TIMER)	+= ledtrig-timer.o
