@@ -24,6 +24,13 @@
  *
  ******************************************************************************/
 
+#include <linux/debugfs.h>
+#include <linux/hrtimer.h>
+#include <linux/ktime.h>
+#include <linux/seq_file.h>
+#include <linux/vmalloc.h>
+#include <linux/workqueue.h>
+
 #include "services_headers.h"
 #include "kerneldisplay.h"
 #include "oemfuncs.h"
@@ -36,7 +43,7 @@
 
 #if !defined(NO_HARDWARE) && \
      defined(SYS_USING_INTERRUPTS) && \
-     defined(SGX530) && (SGX_CORE_REV == 125)
+     defined(SGX530)
 #define SGX_OCP_REGS_ENABLED
 #endif
 
@@ -361,26 +368,10 @@ PVRSRV_ERROR SysInitialise(IMG_VOID)
 		return eError;
 	}
 
-	TimerRegPhysBase.uiAddr = SYS_OMAP3430_GP11TIMER_REGS_SYS_PHYS_BASE;
-	gpsSysData->pvSOCTimerRegisterKM = IMG_NULL;
-	gpsSysData->hSOCTimerRegisterOSMemHandle = 0;
-	OSReservePhys(TimerRegPhysBase,
-				  4,
-				  PVRSRV_HAP_MULTI_PROCESS|PVRSRV_HAP_UNCACHED,
-				  (IMG_VOID **)&gpsSysData->pvSOCTimerRegisterKM,
-				  &gpsSysData->hSOCTimerRegisterOSMemHandle);
-
 #if !defined(SGX_DYNAMIC_TIMING_INFO)
 
 	psTimingInfo = &gsSGXDeviceMap.sTimingInfo;
-	if (mpu_opps[vdd1_max_level].rate == MAX_FREQ_ES_1_2)
-	{
-		psTimingInfo->ui32CoreClockSpeed = SYS_SGX_CLOCK_SPEED_ES_1_2;
-	}
-	else
-	{
-		psTimingInfo->ui32CoreClockSpeed = SYS_SGX_CLOCK_SPEED;
-	}
+	psTimingInfo->ui32CoreClockSpeed = SYS_SGX_CLOCK_SPEED;
 	psTimingInfo->ui32HWRecoveryFreq = SYS_SGX_HWRECOVERY_TIMEOUT_FREQ;
 #if defined(SUPPORT_ACTIVE_POWER_MANAGEMENT)
 	psTimingInfo->bEnableActivePM = IMG_TRUE;
@@ -523,6 +514,24 @@ PVRSRV_ERROR SysInitialise(IMG_VOID)
 
 	DisableSGXClocks(gpsSysData);
 #endif
+
+#if !defined(PVR_NO_OMAP_TIMER)
+#if defined(PVR_OMAP_TIMER_BASE_IN_SYS_SPEC_DATA)
+	TimerRegPhysBase = gsSysSpecificData.sTimerRegPhysBase;
+#else
+	TimerRegPhysBase.uiAddr = SYS_OMAP3430_GP11TIMER_REGS_SYS_PHYS_BASE;
+#endif
+	gpsSysData->pvSOCTimerRegisterKM = IMG_NULL;
+	gpsSysData->hSOCTimerRegisterOSMemHandle = 0;
+	if (TimerRegPhysBase.uiAddr != 0) {
+		OSReservePhys(TimerRegPhysBase,
+				4,
+				PVRSRV_HAP_MULTI_PROCESS|PVRSRV_HAP_UNCACHED,
+				(IMG_VOID **)&gpsSysData->pvSOCTimerRegisterKM,
+				&gpsSysData->hSOCTimerRegisterOSMemHandle);
+	}
+#endif
+
 
 	return PVRSRV_OK;
 }

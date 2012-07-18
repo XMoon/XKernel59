@@ -6,7 +6,7 @@ config SGX540
 
 config SGX530
 	tristate "PowerVR SGX"
-	depends on ARCH_OMAP3 && !MACH_SHOLEST
+	depends on ARCH_OMAP3
 	---help---
 	  Support for the PowerVR SGX 3D core.
 
@@ -88,6 +88,10 @@ config SGX_540_BUILD_DEBUG
        bool "SGX540 DEBUG"
 
 endchoice
+
+config SGX_DEBUG_DISPLAY_DRIVER
+       depends on SGX530 || SGX540
+       bool "Enable Debug Messages in the 3rd Party Display Driver"
 
 config SGX_PDUMP
 	depends on SGX530 || SGX540
